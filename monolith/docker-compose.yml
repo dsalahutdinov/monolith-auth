@@ -1,0 +1,17 @@
+version: '3.4'
+
+services:
+  app: &app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: monolith-auth:0.1.0
+    tmpfs:
+      - /tmp
+
+  server:
+    <<: *app
+    stdin_open: true
+    tty: true
+    ports:
+      - '9292:9292'
