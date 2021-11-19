@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: monolith
+  labels:
+    app: monolith
+    service: monolith
+spec:
+  ports:
+  - port: 9292
+    name: http
+  selector:
+    app: monolith
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: monolith-sa
+  labels:
+    account: monolith
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monolith
+  labels:
+    app: monolith
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monolith
+  template:
+    metadata:
+      labels:
+        app: monolith
+    spec:
+      serviceAccountName: monolith-sa
+      containers:
+      - name: monolith
+        image: monolith-auth:0.1.1
+        ports:
+        - containerPort: 9292
+        env:
+          - name: RACK_ENV
+            value: production
