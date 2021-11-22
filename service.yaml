@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: service
+  labels:
+    app: service
+    service: service
+spec:
+  ports:
+  - port: 8383
+    name: http
+  selector:
+    app: service
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: service-sa
+  labels:
+    account: service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service
+  labels:
+    app: service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service
+  template:
+    metadata:
+      labels:
+        app: service
+    spec:
+      serviceAccountName: service-sa
+      containers:
+      - name: service
+        image: service-auth:0.1.0
+        ports:
+        - containerPort: 8383
+        env:
+          - name: RACK_ENV
+            value: production

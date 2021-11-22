@@ -1,0 +1,15 @@
+version: '3.4'
+
+services:
+  app: &app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: service-auth:0.1.0
+
+  server:
+    <<: *app
+    stdin_open: true
+    tty: true
+    ports:
+      - '8383:8383'
