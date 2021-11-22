@@ -12,6 +12,8 @@ class Application
 
     result = (["PATH: #{req.path_info}", "\n"] + http_headers).join("\n")
 
+    puts result.inspect
+
     case req.path_info
     when /auth/
       if req.fetch_header('HTTP_AUTHORIZATION') == 'Token=123'
@@ -20,7 +22,11 @@ class Application
         [403, {"Content-Type" => "text/plain"}, []]
       end
     else
-      [200, {"Content-Type" => "text/plain"}, [result]]
+      if req.fetch_header("HTTP_X_AUTH_IDENTITY") { nil } == "123"
+        [200, {"Content-Type" => "text/plain"}, [result]]
+      else
+        [403, {"Content-Type" => "text/plain"}, []]
+      end
     end
   end
 end
