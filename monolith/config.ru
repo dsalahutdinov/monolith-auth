@@ -1,29 +1,35 @@
 require 'rack'
-
+require 'json'
+require_relative 'data'
 
 class Application
   def call(env)
     req = Rack::Request.new(env)
-    http_headers = req
-      .each_header
-      .select { |k, v|  k.start_with? 'HTTP_'}
-      .collect {|key, val| [key.sub(/^HTTP_/, ''), val]}
-      .collect {|key, val| "#{key}: #{val}"}
 
-    result = (["PATH: #{req.path_info}", "\n"] + http_headers).join("\n")
-
-    puts result.inspect
+    authorization = req.fetch_header("HTTP_AUTHORIZATION") { nil }
+    current_user = if authorization != nil
+      token = /Token=(?<token>\w*)/.match(authorization)['token']
+      USER_BY_TOKEN[token] if token != ''
+    elsif
+      x_auth_identity = req.fetch_header("HTTP_X_AUTH_IDENTITY") { nil }
+      USER_BY_ID[x_auth_identity]
+    end
+    
 
     case req.path_info
-    when /auth/
-      if req.fetch_header('HTTP_AUTHORIZATION') == 'Token=123'
-        [200, {'X-Auth-Identity' => '123'}, []]
-      else
+    when /products/
+      json = JSON.generate(PRODUCTS)
+      [200, {'Content-Type' => 'application/json'}, [json]]
+    when /favorites/
+      if current_user == nil
         [403, {"Content-Type" => "text/plain"}, []]
+      else
+        json = JSON.generate(FAVORITES_BY_USER_ID[current_user.id.to_s])
+        [200, {"Content-Type" => "text/plain"}, [json]]
       end
-    else
-      if req.fetch_header("HTTP_X_AUTH_IDENTITY") { nil } == "123"
-        [200, {"Content-Type" => "text/plain"}, [result]]
+    when /auth/
+      if current_user != nil
+        [200, {'X-Auth-Identity' => current_user.id.to_s}, []]
       else
         [403, {"Content-Type" => "text/plain"}, []]
       end
