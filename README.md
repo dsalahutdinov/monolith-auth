@@ -42,7 +42,7 @@ export PATH=$PATH:$(pwd)/istio-1.12.0/bin
 istioctl install
 kubectl label namespace default istio-injection=enabled
 
-$ kubectl apply -f monolith.yaml -f favorites.yaml -f gateway.yaml -f envoy-filter.yaml
+$ kubectl apply -f k8s
 
 $ kubectl port-forward service/istio-ingressgateway -n istio-system 8080:80
 $ curl http://localhost:8080/products
