@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: service-auth:0.1.0
+    image: favorites:0.1.0
 
   server:
     <<: *app

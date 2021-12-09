@@ -16,6 +16,7 @@ type FavoriteItem struct {
 
 func favorites(w http.ResponseWriter, req *http.Request) {
   userID := req.Header.Get("X-Auth-Identity")
+
   if (userID != "") {
     data :=  map[string][]FavoriteItem {
       "123": []FavoriteItem{  FavoriteItem{ ProductID: "1"}, FavoriteItem {ProductID: "2"}},
@@ -23,7 +24,6 @@ func favorites(w http.ResponseWriter, req *http.Request) {
       "345": []FavoriteItem{  FavoriteItem{ ProductID: "1"}, FavoriteItem {ProductID: "4"}},
     }
     json.NewEncoder(w).Encode(data[userID])
-
   } else {
     w.WriteHeader(http.StatusForbidden)
   }

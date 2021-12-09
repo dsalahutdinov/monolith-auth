@@ -16,23 +16,9 @@ spec:
         typed_config:
           '@type': type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
           inlineCode: |
-            function dump(o)
-              if type(o) == 'table' then
-                 local s = '{ '
-                 for k,v in pairs(o) do
-                   if type(k) ~= 'number' then k = '"'..k..'"' end
-                   s = s .. '['..k..'] = ' .. dump(v) .. ','
-                  end
-                return s .. '} '
-               else
-                return tostring(o)
-              end
-            end
-
             function envoy_on_request(request_handle)
               token = request_handle:headers():get("Authorization")
               if token ~= nil then
-                request_handle:logErr("Token: "..token)
                 request_handle:headers():remove("Authorization")
 
 
@@ -49,18 +35,8 @@ spec:
                 
                 identity = response_headers["x-auth-identity"]
                 if identity ~= nil then
-                  request_handle:logErr("x-auth-identity"..identity)
                   request_handle:headers():add("X-Auth-Identity", identity)
                 end
-              end
-            end
-
-            function envoy_on_response(response_handle)
-              response_handle:logErr("Status: "..response_handle:headers():get(":status"))
-              if response_handle:body() == nil then
-                response_handle:headers():add("response_body_size", "0")
-              else
-                response_handle:headers():add("response_body_size", response_handle:body():length())
               end
             end
 

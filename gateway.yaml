@@ -25,9 +25,9 @@ spec:
   http:
   - match:
     - uri:
-        exact: /hello
-    - uri:
-        prefix: /endpoint1
+        exact: /products
+#    - uri:
+#        prefix: /favorites
     route:
     - destination:
         host: monolith.default.svc.cluster.local
@@ -35,15 +35,11 @@ spec:
           number: 9292
   - match:
     - uri:
-        exact: /headers
+        exact: /hello
     - uri:
-        prefix: /endpoint2
+        prefix: /favorites
     route:
     - destination:
-        host: service.default.svc.cluster.local
+        host: favorites.default.svc.cluster.local
         port:
           number: 8383
-      headers:
-        request:
-          remove:
-          - 'x-auth-identity'

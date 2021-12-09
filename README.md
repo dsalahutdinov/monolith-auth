@@ -1,56 +1,50 @@
 # monolith-auth
 Example of how to enable monolith authenticated traffic into micro-services
 
+## Local setup
+
 Run monolith locally:
 ```sh
-docker-compose -f monolith/docker-compose.yml up --build server
+# builds docker images and runs server
+$ docker-compose -f monolith/docker-compose.yml up --build server
 
-curl http://localhost:9292/
+# calls public products endpoint
+$ curl http://localhost:9292/products
+[{"id":"1","name":"Potato"},{"id":"2","name":"Tomato"},{"id":"3","name":"Onion"},{"id":"4","name":"Carrot"}]
+
+# calls favorites endpoint with api token:
+$ curl http://localhost:9292/favorites -H "Authorization: Token=qwerty"
+[{"product_id":"1"},{"product_id":"2"}]
 ```
 
-Build docker image:
+Run favorites service locally:
 ```sh
-docker build --tag monolith-auth:0.1.0 ./monolith
+$ docker-compose -f favorites/docker-compose.yml up --build server
+
+$ curl http://localhost:8383/favorites -H "X-Auth-Identity: 234"
+[{"product_id":"1"},{"product_id":"3"}]
 ```
 
-
-Run application in minikube
+## Minikube setup
 ```
-minikube start --cpus 6 --memory 6144
+$ brew install minikube
+$ minikube start --cpus 2 --memory 2096
 
-eval $(minikube docker-env)
-docker build --tag monolith-auth:0.1.0 ./monolith
-docker images | grep monolith
+$ eval $(minikube docker-env)
+$ docker build --tag monolith:0.1.0 ./monolith --no-cache
+$ docker build --tag favorites:0.1.0 ./favorites --no-cache
 
-kubectl apply -f monolith.yaml
-
-minikube service monolith --url
-curl http://127.0.0.1:53364 -H "X-Custom-Header: 123"
-
-kubectl delete -f monolith.yaml
-```
-
-
-```
 curl -L https://github.com/istio/istio/releases/download/1.12.0/istio-1.12.0-osx.tar.gz > istio-1.12.0-osx.tar.gz
 gunzip istio-1.12.0-osx.tar.gz
 tar xopf istio-1.12.0-osx.tar
-
 export PATH=$PATH:$(pwd)/istio-1.12.0/bin
-istioctl version
 
 istioctl install
-# yes
-
-kubectl get pods -n istio-system
-
 kubectl label namespace default istio-injection=enabled
 
-kubectl apply -f monolith.yaml
+$ kubectl apply -f monolith.yaml -f favorites.yaml -f gateway.yaml -f envoy-filter.yaml
 
-minikube service istio-ingressgateway -n istio-system --url
-http://127.0.0.1:53555/hello
-
+$ kubectl port-forward service/istio-ingressgateway -n istio-system 8080:80
+$ curl http://localhost:8080/products
+[{"id":"1","name":"Potato"},{"id":"2","name":"Tomato"},{"id":"3","name":"Onion"},{"id":"4","name":"Carrot"}]
 ```
-
-

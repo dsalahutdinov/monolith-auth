@@ -1,46 +1,42 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: service
+  name: favorites
   labels:
-    app: service
-    service: service
+    app: favorites
 spec:
   ports:
   - port: 8383
     name: http
   selector:
-    app: service
+    app: favorites
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: service-sa
+  name: favorites-sa
   labels:
-    account: service
+    account: favorites
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: service
+  name: favorites
   labels:
-    app: service
+    app: favorites
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: service
+      app: favorites
   template:
     metadata:
       labels:
-        app: service
+        app: favorites
     spec:
-      serviceAccountName: service-sa
+      serviceAccountName: favorites-sa
       containers:
-      - name: service
-        image: service-auth:0.1.0
+      - name: favorites
+        image: favorites:0.1.0
         ports:
         - containerPort: 8383
-        env:
-          - name: RACK_ENV
-            value: production

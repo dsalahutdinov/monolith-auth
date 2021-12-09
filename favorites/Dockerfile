@@ -1,10 +1,10 @@
 FROM golang:latest 
 
 
-WORKDIR $GOPATH/src/github.com/dsalahutdinov/monolith-auth/service
+WORKDIR $GOPATH/src/github.com/dsalahutdinov/monolith-auth/favorites
 
 COPY . .
-RUN go mod init service
+RUN go mod init favorites
 
 RUN go get -d -v ./...
 
