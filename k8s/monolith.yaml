@@ -34,6 +34,10 @@ spec:
     metadata:
       labels:
         app: monolith
+      annotations:
+        sidecar.istio.io/userVolume: '[{"name":"wasm-binary","configMap":{"name":"wasm-binary"}}]'
+        sidecar.istio.io/userVolumeMount: '[{"mountPath":"/var/local/wasm","name":"wasm-binary"}]'
+        sidecar.istio.io/logLevel: "info"
     spec:
       serviceAccountName: monolith-sa
       containers:
