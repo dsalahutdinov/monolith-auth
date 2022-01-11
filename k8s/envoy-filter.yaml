@@ -3,49 +3,37 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: monolith-auth-filter
-  namespace: istio-system
 spec:
   configPatches:
   - applyTo: HTTP_FILTER
     match:
-      context: GATEWAY
+      context: SIDECAR_INBOUND
+      listener:
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+            subFilter:
+              name: envoy.filters.http.router
     patch:
       operation: INSERT_BEFORE
       value:
-        name: envoy.filters.http.lua
+        name: envoy.filters.http.wasm
         typed_config:
-          '@type': type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
-          inlineCode: |
-            function envoy_on_request(request_handle)
-              token = request_handle:headers():get("Authorization")
-              if token ~= nil then
-                request_handle:headers():remove("Authorization")
-
-
-                local authentication_request = {
-                  [":method"] = "GET", [":path"] = "/auth",
-                  [":authority"] = "lua_cluster",
-                  ["authorization"] = token
-                }
-                local response_headers, response_body = request_handle:httpCall(
-                "lua_cluster",
-                authentication_request,
-                "", 100
-                )
-                
-                identity = response_headers["x-auth-identity"]
-                if identity ~= nil then
-                  request_handle:headers():add("X-Auth-Identity", identity)
-                end
-              end
-            end
-
+          '@type': type.googleapis.com/udpa.type.v1.TypedStruct
+          type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+          value:
+            config:
+              vm_config:
+                runtime: envoy.wasm.runtime.v8
+                code:
+                  local:
+                    filename: /var/local/wasm/go_filter.wasm
   - applyTo: CLUSTER
     match:
-      context: GATEWAY
+      context: SIDECAR_INBOUND
     patch:
       operation: ADD
-      value: # cluster specification
+      value:
         name: "lua_cluster"
         type: STRICT_DNS
         connect_timeout: 0.5s
