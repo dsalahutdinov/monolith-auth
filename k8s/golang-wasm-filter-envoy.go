@@ -50,10 +50,14 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 		return types.ActionContinue
 	}
 
+	proxywasm.LogInfof("request authorization token: %v", token)
+
 	path, err := proxywasm.GetHttpRequestHeader(":path")
 	if err != nil {
 		proxywasm.LogCriticalf("failed to get 'path' header: %v", err)
 	}
+
+	proxywasm.LogInfof("request path: %v", path)
 
 	if path == "" {
 		return types.ActionContinue
@@ -83,6 +87,8 @@ func callBack(numHeaders, bodySize, numTrailers int) {
 			identity = h[1]
 		}
 	}
+
+	proxywasm.LogInfof("received 'x-auth-identity': %v", identity)
 
 	if identity == "" {
 		proxywasm.ResumeHttpRequest()
