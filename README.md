@@ -48,3 +48,36 @@ $ kubectl port-forward service/istio-ingressgateway -n istio-system 8080:80
 $ curl http://localhost:8080/products
 [{"id":"1","name":"Potato"},{"id":"2","name":"Tomato"},{"id":"3","name":"Onion"},{"id":"4","name":"Carrot"}]
 ```
+
+## Ingress Gateway Logs
+
+```shell
+kubectl logs $(kubectl get pods -n istio-system -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep istio-ingressgateway | head -1) -n istio-system -f
+```
+
+
+## WASM
+
+### Setup (create ConfigMap)
+
+```shell
+cd k8s
+tinygo build -o go_filter.wasm -scheduler=none -target=wasi ./golang-wasm-filter-envoy.go
+kubectl create configmap wasm-binary --from-file=go_filter.wasm
+kubectl label namespace default istio-injection=enabled --overwrite=true
+```
+
+### Logs
+
+```shell
+kubectl logs $(kubectl get pods -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep favorites | head -1) -c istio-proxy -f
+```
+
+### Apply WASM changes to EnvoyFilter
+
+```shell
+cd k8s
+tinygo build -o go_filter.wasm -scheduler=none -target=wasi ./golang-wasm-filter-envoy.go
+kubectl delete configmap wasm-binary && kubectl create configmap wasm-binary --from-file=go_filter.wasm
+kubectl delete pods $(kubectl get pods -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep favorites)
+```

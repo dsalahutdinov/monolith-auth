@@ -26,8 +26,6 @@ spec:
   - match:
     - uri:
         exact: /products
-#    - uri:
-#        prefix: /favorites
     route:
     - destination:
         host: monolith.default.svc.cluster.local
