@@ -23,21 +23,43 @@ spec:
   gateways:
   - monolith-gateway
   http:
-  - match:
-    - uri:
-        exact: /products
-    route:
-    - destination:
-        host: monolith.default.svc.cluster.local
-        port:
-          number: 9292
-  - match:
-    - uri:
-        exact: /hello
-    - uri:
-        prefix: /favorites
-    route:
-    - destination:
-        host: favorites.default.svc.cluster.local
-        port:
-          number: 8383
+    - match:
+        - headers:
+            canary:
+              exact: "rails_next"
+      route:
+        - destination:
+            host: monolith.default.svc.cluster.local
+            subset: v2
+            port:
+                number: 9292
+          weight: 100
+    - match:
+        - {}
+      route:
+        - destination:
+            host: monolith.default.svc.cluster.local
+            subset: v1
+            port:
+                number: 9292
+          weight: 90
+        - destination:
+            host: monolith.default.svc.cluster.local
+            subset: v2
+            port:
+                number: 9292
+          weight: 10
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: monolith
+spec:
+  host: monolith
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2

@@ -28,12 +28,15 @@ $ curl http://localhost:8383/favorites -H "X-Auth-Identity: 234"
 ## Minikube setup
 ```
 $ brew install minikube
-$ minikube start --cpus 2 --memory 2096
+$ minikube start --cpus 2 --memory 2048
 
 $ eval $(minikube docker-env)
+$ minikube -p minikube docker-env | source
+
 $ docker build --tag monolith:0.1.0 ./monolith --no-cache
 $ docker build --tag favorites:0.1.0 ./favorites --no-cache
 
+#curl -L https://istio.io/downloadIstio | sh -
 curl -L https://github.com/istio/istio/releases/download/1.12.0/istio-1.12.0-osx.tar.gz > istio-1.12.0-osx.tar.gz
 gunzip istio-1.12.0-osx.tar.gz
 tar xopf istio-1.12.0-osx.tar
@@ -42,11 +45,20 @@ export PATH=$PATH:$(pwd)/istio-1.12.0/bin
 istioctl install
 kubectl label namespace default istio-injection=enabled
 
-$ kubectl apply -f k8s
+$ kubectl apply -f k8s/monolith.yaml -f k8s/gateway.yaml
 
+$ minikube tunnel
 $ kubectl port-forward service/istio-ingressgateway -n istio-system 8080:80
 $ curl http://localhost:8080/products
 [{"id":"1","name":"Potato"},{"id":"2","name":"Tomato"},{"id":"3","name":"Onion"},{"id":"4","name":"Carrot"}]
+```
+
+## Canary
+```shell
+$ curl http://127.0.0.1/products/ #Version by weights
+
+$ curl http://127.0.0.1/products/ -H "Canary: rails_next" #Force Canary Version
+[{"id":"1","name":"Potato"},{"id":"2","name":"Tomato"},{"id":"3","name":"Onion"},{"id":"4","name":"Carrot"},{"id":"5","name":"Canary"}]
 ```
 
 ## Ingress Gateway Logs

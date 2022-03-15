@@ -16,7 +16,8 @@ PRODUCTS = [
   { id: '1', name: 'Potato' },
   { id: '2', name: 'Tomato' },
   { id: '3', name: 'Onion' },
-  { id: '4', name: 'Carrot' }
+  { id: '4', name: 'Carrot' },
+  { id: '5', name: 'Canary' }
 ]
 
 FAVORITES_BY_USER_ID = {
