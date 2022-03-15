@@ -22,7 +22,7 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: monolith
+  name: monolith-v1
   labels:
     app: monolith
 spec:
@@ -30,13 +30,13 @@ spec:
   selector:
     matchLabels:
       app: monolith
+      version: v1
   template:
     metadata:
       labels:
         app: monolith
+        version: v1
       annotations:
-        sidecar.istio.io/userVolume: '[{"name":"wasm-binary","configMap":{"name":"wasm-binary"}}]'
-        sidecar.istio.io/userVolumeMount: '[{"mountPath":"/var/local/wasm","name":"wasm-binary"}]'
         sidecar.istio.io/logLevel: "info"
     spec:
       serviceAccountName: monolith-sa
@@ -48,3 +48,33 @@ spec:
         env:
           - name: RACK_ENV
             value: production
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monolith-v2
+  labels:
+    app: monolith
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monolith
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: monolith
+        version: v2
+      annotations:
+        sidecar.istio.io/logLevel: "info"
+    spec:
+      serviceAccountName: monolith-sa
+      containers:
+        - name: monolith
+          image: monolith:0.1.1
+          ports:
+            - containerPort: 9292
+          env:
+            - name: RACK_ENV
+              value: production

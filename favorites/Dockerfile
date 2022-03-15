@@ -1,4 +1,4 @@
-FROM golang:latest 
+FROM golang:latest
 
 
 WORKDIR $GOPATH/src/github.com/dsalahutdinov/monolith-auth/favorites
@@ -15,4 +15,3 @@ RUN ls -l main
 EXPOSE 8383
 
 CMD ["./main"]
-
